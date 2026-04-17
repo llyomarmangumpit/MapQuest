@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MapQuest Route Finder</title>
+<style>
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .container {
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 15px;
+        width: 450px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    input {
+        width: 100%;
+        padding: 12px;
+        margin: 8px 0;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        outline: none;
+        transition: 0.3s;
+    }
+
+    input:focus {
+        border-color: #4facfe;
+        box-shadow: 0 0 5px rgba(79, 172, 254, 0.5);
+    }
+
+    button {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #4facfe, #00c6ff);
+        border: none;
+        color: white;
+        font-size: 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    button:hover {
+        background: linear-gradient(135deg, #00c6ff, #0072ff);
+        transform: scale(1.03);
+    }
+
+    table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+        overflow: hidden;
+        border-radius: 10px;
+    }
+
+    th {
+        background: #4facfe;
+        color: white;
+        padding: 10px;
+        text-align: left;
+    }
+
+    td {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    tr:hover {
+        background-color: #f1f9ff;
+    }
+
+    .steps {
+        max-height: 150px;
+        overflow-y: auto;
+    }
+
+    ol {
+        padding-left: 20px;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h2>MapQuest Route Finder</h2>
+
+    <input type="text" id="start" placeholder="Enter Starting Location">
+    <input type="text" id="end" placeholder="Enter Destination">
+
+    <button onclick="getRoute()">Get Route</button>
+
+    <div id="result"></div>
+</div>
+
+<script>
+    const API_KEY = "Ca04kVNLR7kqwbv8v7qMJMPBVKAcPUey"; // 🔑 Replace this
+
+    async function getRoute() {
+        const start = document.getElementById("start").value;
+        const end = document.getElementById("end").value;
+
+        if (!start || !end) {
+            alert("Please enter both locations.");
+            return;
+        }
+
+        const url = `https://www.mapquestapi.com/directions/v2/route?key=${API_KEY}&from=${start}&to=${end}`;
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.info.statuscode !== 0) {
+                document.getElementById("result").innerHTML = "Error getting route.";
+                return;
+            }
+
+            const route = data.route;
+            const steps = route.legs[0].maneuvers;
+
+            let stepsHTML = "";
+            steps.forEach((step, index) => {
+                stepsHTML += `<li>${index + 1}. ${step.narrative}</li>`;
+            });
+
+            document.getElementById("result").innerHTML = `
+                <table>
+                    <tr>
+                        <th>Start Location</th>
+                        <td>${start}</td>
+                    </tr>
+                    <tr>
+                        <th>Destination</th>
+                        <td>${end}</td>
+                    </tr>
+                    <tr>
+                        <th>Distance (km)</th>
+                        <td>${(route.distance * 1.60934).toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                        <th>Time (minutes)</th>
+                        <td>${Math.round(route.time / 60)}</td>
+                    </tr>
+                    <tr>
+                        <th>Route Steps</th>
+                        <td class="steps">
+                            <ol>${stepsHTML}</ol>
+                        </td>
+                    </tr>
+                </table>
+            `;
+
+        } catch (error) {
+            document.getElementById("result").innerHTML = "Something went wrong.";
+        }
+    }
+</script>
+
+</body>
+</html>
